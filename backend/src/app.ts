@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import ridesRoutes from './routes/ridesRoutes.ts';
 
 dotenv.config();
 
@@ -11,11 +12,11 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use('/api/rides', ridesRoutes);
+
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// TODO: Add your API routes here based on the implementation plan
-// app.use('/api/rides', ridesRouter);
 
 export default app;
