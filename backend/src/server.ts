@@ -1,4 +1,4 @@
-import app from './app.js'; // Note the .js extension for ES Modules in NodeNext
+import app from './app.ts'; // Note the .js extension for ES Modules in NodeNext
 
 const PORT = process.env.PORT || 3000;
 
