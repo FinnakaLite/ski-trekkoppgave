@@ -1,0 +1,68 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Heis_metadata {
+  heis  Heiser @id
+  length Int
+
+}
+
+model Heissystem {
+  cardSerial String   @id
+  time       DateTime @default(now())
+  location   Heiser
+}
+
+model Turer {
+  turID         Int      @id @default(autoincrement())
+  cardSerial    String
+  timeFirstLift DateTime
+  timeEndLift   DateTime
+  route         Bakker[]
+}
+
+model Heis_Turer {
+  heisTurid Int @id @default(autoincrement())
+  cardSerial  String 
+  timeStart DateTime
+  heis Heiser
+  length Int
+}
+
+enum Bakker {
+  B1
+  B2
+  B3
+  B4
+  B5
+  B6
+  B7
+  B8
+  B9
+  B10
+  B11
+  B12
+  B14
+  B15
+  B16
+  B21
+  B22
+  B23
+  B24
+  B25
+  B26
+  B27
+}
+
+enum Heiser {
+  S1
+  S2
+  L1
+  L2
+  L3_4
+}
