@@ -1,42 +1,45 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import ScanCard from './pages/ScanCard.svelte';
+  import { onMount } from "svelte";
+  import ScanCard from "./pages/ScanCard.svelte";
 
-  const API_BASE_URL = 'http://localhost:3000/api';
-  
+  const API_BASE_URL = "http://localhost:3000/api";
+
   let currentPath = $state(window.location.pathname);
   let cardSerial = $state<string | null>(null);
 
   onMount(() => {
     // Check local storage for the card serial
-    cardSerial = localStorage.getItem('cardSerial');
-    
+    cardSerial = localStorage.getItem("cardSerial");
+
     // Redirect logic
-    if (!cardSerial && currentPath !== '/scanCard') {
-      window.history.pushState({}, '', '/scanCard');
-      currentPath = '/scanCard';
+    if (!cardSerial && currentPath !== "/scanCard") {
+      window.history.pushState({}, "", "/scanCard");
+      currentPath = "/scanCard";
     }
 
     // Listen for path changes (popstate)
     const handlePopState = () => {
       currentPath = window.location.pathname;
     };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   });
 </script>
 
-{#if currentPath === '/scanCard'}
-  <ScanCard />
+{#if currentPath === "/scanCard"}
+  <ScanCard {API_BASE_URL} />
 {:else}
   <main class="dashboard-container">
     <h1>Welcome to the Ski Tracker</h1>
     <p>Your Card Serial: {cardSerial}</p>
-    
-    <button class="danger-btn" onclick={() => {
-      localStorage.removeItem('cardSerial');
-      window.location.href = '/scanCard';
-    }}>
+
+    <button
+      class="danger-btn"
+      onclick={() => {
+        localStorage.removeItem("cardSerial");
+        window.location.href = "/scanCard";
+      }}
+    >
       Clear Card and Retry
     </button>
   </main>
@@ -46,7 +49,11 @@
   :global(body) {
     margin: 0;
     padding: 0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: #f8fafc;
     min-height: 100vh;
