@@ -93,19 +93,24 @@ export const processHeissystemData = async (lastSyncTime?: Date) => {
                 const startLift = lastRide.heis;
                 const endLift = location;
 
-                // Lookup path in our predefined Map
-                const calculatedRoute = ROUTES_MAP[startLift]?.[endLift];
+                // Lookup path in our predefined Map (now an array of routes)
+                const calculatedRoutes = ROUTES_MAP[startLift]?.[endLift];
 
-                if (calculatedRoute) {
-                    await prisma.turer.create({
-                        data: {
-                            cardSerial,
-                            timeFirstLift: lastRide.timeStart,
-                            timeEndLift: time,
-                            route: calculatedRoute,
-                        }
-                    });
-                    routesCalculated++;
+                if (calculatedRoutes && calculatedRoutes.length > 0) {
+                    // For now, we pick the first defined route.
+                    // The guest can edit this route later using the manual update API if they took another path.
+                    const defaultRoute = calculatedRoutes[0];
+                    if (defaultRoute) {
+                        await prisma.turer.create({
+                            data: {
+                                cardSerial,
+                                timeFirstLift: lastRide.timeStart,
+                                timeEndLift: time,
+                                route: defaultRoute,
+                            }
+                        });
+                        routesCalculated++;
+                    }
                 } else {
                     console.log(`No predefined route found from ${startLift} to ${endLift} for card ${cardSerial}`);
                 }
