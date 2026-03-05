@@ -1,7 +1,8 @@
 import prisma from './prisma.ts';
 import { ROUTES_MAP } from '../common/constants/routesMap.ts';
 import { Heiser, Bakker } from '@prisma/client';
-
+import { syncHeissystemData, generateTripsFromHeisTurer, processHeissystemData } from '../controllers/syncController.ts';
+import promptSync from 'prompt-sync';
 /**
  * Script to generate dummy lift rides and route data for testing purposes.
  * This script populates the Heis_metadata, Heis_Turer, and Turer tables.
@@ -134,6 +135,14 @@ async function main() {
     }
 
     console.log('\n--- Dummy data generation complete ---');
+    const prompt = promptSync();
+
+    const userInput = prompt('Do you want to sync this data to the database and process it? (yes/no)');
+    if (userInput === 'yes') {
+        await processHeissystemData();
+    } else {
+        console.log('Skipping sync and processing.');
+    }
 }
 
 main()
