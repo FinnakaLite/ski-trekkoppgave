@@ -33,21 +33,19 @@ export const fetchHeissystemData = async (lastSyncTime?: Date) => {
 };
 
 /**
- * Synchronize and process new entries from Heissystem, inserting into Heis_Turer and Turer.
+ * Part 1: Synchronize raw scans from the read-only Heissystem table into our local Heis_Turer table.
  */
-export const processHeissystemData = async (lastSyncTime?: Date) => {
+export const syncHeissystemData = async (lastSyncTime?: Date) => {
     try {
         const records = await fetchHeissystemData(lastSyncTime);
-        if (records.length === 0) return;
+        if (records.length === 0) return 0;
 
         let processedCount = 0;
-        let routesCalculated = 0;
 
         for (const record of records) {
             const { cardSerial, time, location } = record;
 
-            // 1. Check if we already have this exact scan in Heis_Turer to avoid duplicates
-            // Since time is DateTime, we can check for an exact match
+            // Check for existing record to avoid duplicates
             const existingHeisTur = await prisma.heis_Turer.findFirst({
                 where: {
                     cardSerial,
@@ -55,30 +53,16 @@ export const processHeissystemData = async (lastSyncTime?: Date) => {
                 }
             });
 
-            if (existingHeisTur) {
-                // Skip if duplicate
-                continue;
-            }
+            if (existingHeisTur) continue;
 
-            // 2. Look up the last known location/ride for this cardSerial BEFORE current time
-            const lastRide = await prisma.heis_Turer.findFirst({
-                where: {
-                    cardSerial,
-                    timeStart: { lt: time } // Only look at rides strictly before this new one
-                },
-                orderBy: {
-                    timeStart: 'desc'
-                }
-            });
-
-            // 3. Get metadata length for the current lift
+            // Get metadata length for the current lift
             const metadata = await prisma.heis_metadata.findUnique({
                 where: { heis: location },
             });
             const length = metadata?.length || 0;
 
-            // 4. Save the new ride to Heis_Turer
-            const currentRide = await prisma.heis_Turer.create({
+            // Save the new ride to Heis_Turer
+            await prisma.heis_Turer.create({
                 data: {
                     cardSerial,
                     timeStart: time,
@@ -87,39 +71,91 @@ export const processHeissystemData = async (lastSyncTime?: Date) => {
                 }
             });
             processedCount++;
+        }
 
-            // 5. If there was a previous ride, calculate the route between them
-            if (lastRide) {
-                const startLift = lastRide.heis;
-                const endLift = location;
+        console.log(`Sync complete: Processed ${processedCount} new raw lift rides.`);
+        return processedCount;
+    } catch (error) {
+        console.error('Error syncing Heissystem data:', error);
+        throw error;
+    }
+};
 
-                // Lookup path in our predefined Map (now an array of routes)
-                const calculatedRoutes = ROUTES_MAP[startLift]?.[endLift];
+/**
+ * Part 2: Process the local Heis_Turer table to identify and calculate trips (Turer).
+ * This logic is now based entirely on the local records.
+ */
+export const generateTripsFromHeisTurer = async (targetCardSerial?: string) => {
+    try {
+        console.log('Calculating trips from local lift ride history...');
 
-                if (calculatedRoutes && calculatedRoutes.length > 0) {
-                    // For now, we pick the first defined route.
-                    // The guest can edit this route later using the manual update API if they took another path.
-                    const defaultRoute = calculatedRoutes[0];
-                    if (defaultRoute) {
-                        await prisma.turer.create({
-                            data: {
-                                cardSerial,
-                                timeFirstLift: lastRide.timeStart,
-                                timeEndLift: time,
-                                route: defaultRoute,
-                            }
-                        });
-                        routesCalculated++;
-                    }
-                } else {
-                    console.log(`No predefined route found from ${startLift} to ${endLift} for card ${cardSerial}`);
+        // If targetCardSerial is provided, only process that card. Otherwise process all.
+        const whereClause = targetCardSerial ? { cardSerial: targetCardSerial } : {};
+
+        // Get all lift rides, grouped by card and ordered by time
+        const allRides = await prisma.heis_Turer.findMany({
+            where: whereClause,
+            orderBy: [
+                { cardSerial: 'asc' },
+                { timeStart: 'asc' }
+            ]
+        });
+
+        let tripsCreated = 0;
+
+        // Iterate through rides to find consecutive pairs for the same card
+        for (let i = 0; i < allRides.length - 1; i++) {
+            const rideA = allRides[i];
+            const rideB = allRides[i + 1];
+
+            // Ensure they belong to the same card
+            if (rideA.cardSerial !== rideB.cardSerial) continue;
+
+            // Check if a Tur (trip) already exists for this specific interval
+            const existingTur = await prisma.turer.findFirst({
+                where: {
+                    cardSerial: rideA.cardSerial,
+                    timeFirstLift: rideA.timeStart,
+                    timeEndLift: rideB.timeStart
                 }
+            });
+
+            if (existingTur) continue;
+
+            // Calculate the route between the two lifts
+            const startLift = rideA.heis;
+            const endLift = rideB.heis;
+            const possibleRoutes = ROUTES_MAP[startLift]?.[endLift];
+
+            if (possibleRoutes && possibleRoutes.length > 0) {
+                // Default to the first suggested route
+                const defaultRoute = possibleRoutes[0];
+
+                await prisma.turer.create({
+                    data: {
+                        cardSerial: rideA.cardSerial,
+                        timeFirstLift: rideA.timeStart,
+                        timeEndLift: rideB.timeStart,
+                        route: defaultRoute,
+                    }
+                });
+                tripsCreated++;
             }
         }
 
-        console.log(`Sync complete: Processed ${processedCount} new lift rides, calculated ${routesCalculated} routes.`);
+        console.log(`Trip generation complete: Generated ${tripsCreated} new trips.`);
+        return tripsCreated;
     } catch (error) {
-        console.error('Error processing Heissystem data:', error);
+        console.error('Error generating trips from Heis_Turer:', error);
         throw error;
     }
+};
+
+/**
+ * Main entry point that runs both parts of the sync process.
+ */
+export const processHeissystemData = async (lastSyncTime?: Date) => {
+    const newScans = await syncHeissystemData(lastSyncTime);
+    const newTrips = await generateTripsFromHeisTurer();
+    return { newScans, newTrips };
 };
