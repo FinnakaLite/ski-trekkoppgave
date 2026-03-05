@@ -19,19 +19,25 @@ model Heissystem {
 }
 
 model Turer {
-  turID         Int      @id @default(autoincrement())
-  cardSerial    String
-  timeFirstLift DateTime
-  timeEndLift   DateTime
-  route         Bakker[]
+  turID           Int        @id @default(autoincrement())
+  cardSerial      String
+  timeFirstLift   DateTime
+  timeEndLift     DateTime
+  startHeisTur    Heis_Turer @relation("StartRide", fields: [startHeisTurID], references: [heisTurid])
+  startHeisTurID  Int
+  endHeisTur      Heis_Turer @relation("EndRide", fields: [endHeisTurID], references: [heisTurid])
+  endHeisTurID    Int
+  route           Bakker[]
 }
 
 model Heis_Turer {
-  heisTurid Int @id @default(autoincrement())
-  cardSerial  String 
-  timeStart DateTime
-  heis Heiser
-  length Int
+  heisTurid     Int      @id @default(autoincrement())
+  cardSerial    String
+  timeStart     DateTime
+  heis          Heiser
+  length        Int
+  startsTrips   Turer[]  @relation("StartRide")
+  endsTrips     Turer[]  @relation("EndRide")
 }
 
 enum Bakker {

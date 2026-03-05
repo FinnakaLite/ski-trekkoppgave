@@ -114,9 +114,8 @@ export const generateTripsFromHeisTurer = async (targetCardSerial?: string) => {
             // Check if a Tur (trip) already exists for this specific interval
             const existingTur = await prisma.turer.findFirst({
                 where: {
-                    cardSerial: rideA.cardSerial,
-                    timeFirstLift: rideA.timeStart,
-                    timeEndLift: rideB.timeStart
+                    startHeisTurID: rideA.heisTurid,
+                    endHeisTurID: rideB.heisTurid
                 }
             });
 
@@ -136,6 +135,8 @@ export const generateTripsFromHeisTurer = async (targetCardSerial?: string) => {
                         cardSerial: rideA.cardSerial,
                         timeFirstLift: rideA.timeStart,
                         timeEndLift: rideB.timeStart,
+                        startHeisTurID: rideA.heisTurid,
+                        endHeisTurID: rideB.heisTurid,
                         route: defaultRoute,
                     }
                 });

@@ -49,6 +49,7 @@ async function main() {
         // Tracks current sequence of rides to generate trips (Turer)
         let lastRideLift: Heiser | null = null;
         let lastRideTime: Date | null = null;
+        let lastHeisTurID: number | null = null;
 
         for (let i = 0; i < numRides; i++) {
             // 2. Look up metadata length for current lift
@@ -56,8 +57,7 @@ async function main() {
             const length = metadata?.length || 0;
 
             // 3. Create the lift ride record in Heis_Turer
-            // This table is normally populated by the sync controller from raw system data.
-            await prisma.heis_Turer.create({
+            const currentRide = await prisma.heis_Turer.create({
                 data: {
                     cardSerial,
                     heis: currentLift,
@@ -65,10 +65,10 @@ async function main() {
                     length: length,
                 },
             });
-            console.log(`  [Heis_Turer] Lift: ${currentLift} at ${lastTime.toLocaleTimeString()}`);
+            console.log(`  [Heis_Turer] Lift: ${currentLift} at ${lastTime.toLocaleTimeString()} (ID: ${currentRide.heisTurid})`);
 
             // 4. If we have a previous lift position, calculate the trip/route taken between them
-            if (lastRideLift && lastRideTime) {
+            if (lastRideLift && lastRideTime && lastHeisTurID) {
                 // Find possible routes from previous lift to current lift in ROUTES_MAP
                 const possibleRoutes = ROUTES_MAP[lastRideLift]?.[currentLift];
 
@@ -81,6 +81,8 @@ async function main() {
                             cardSerial,
                             timeFirstLift: lastRideTime,
                             timeEndLift: lastTime,
+                            startHeisTurID: lastHeisTurID,
+                            endHeisTurID: currentRide.heisTurid,
                             route: chosenRoute as Bakker[],
                         },
                     });
@@ -95,6 +97,8 @@ async function main() {
                                 cardSerial,
                                 timeFirstLift: lastRideTime,
                                 timeEndLift: lastTime,
+                                startHeisTurID: lastHeisTurID,
+                                endHeisTurID: currentRide.heisTurid,
                                 route: chosenRoute as Bakker[],
                             },
                         });
@@ -104,6 +108,9 @@ async function main() {
                     console.log(`  ! Logic Gap: No predefined route from ${lastRideLift} to ${currentLift} found in ROUTES_MAP.`);
                 }
             }
+
+            // Update tracking for next iteration
+            lastHeisTurID = currentRide.heisTurid;
 
             // 5. Pick the next lift based on what is reachable from the current one
             const possibleDestinations = Object.keys(ROUTES_MAP[currentLift] || {}) as Heiser[];
