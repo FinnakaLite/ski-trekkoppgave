@@ -82,14 +82,10 @@
 </script>
 
 <div class="overlay" onclick={onClose} aria-hidden="true">
-    <div
-        class="modal card-glass"
-        onclick={(e) => e.stopPropagation()}
-        aria-hidden="true"
-    >
+    <div class="modal" onclick={(e) => e.stopPropagation()} aria-hidden="true">
         <header class="modal-header">
             <h3>Trip #{routeRecord.turID}</h3>
-            <button class="close-btn" onclick={onClose}>&times;</button>
+            <button class="modal-close-btn" onclick={onClose}>&times;</button>
         </header>
 
         <div class="timeline">
@@ -162,64 +158,7 @@
 </div>
 
 <style>
-    .overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(10, 15, 30, 0.85);
-        backdrop-filter: blur(8px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        padding: var(--spacing-md);
-    }
-
-    .modal {
-        position: relative;
-        max-width: 480px;
-        width: 100%;
-        margin: 0;
-        padding: var(--spacing-lg);
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--spacing-lg);
-        flex-shrink: 0;
-    }
-
-    .modal-header h3 {
-        font-size: 1.5rem;
-        font-weight: 800;
-    }
-
-    .close-btn {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--glass-border);
-        color: var(--text-muted);
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-full);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.25rem;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-    }
-
-    .close-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--text-main);
-    }
-
-    /* Timeline Styling */
+    /* Most styles are now in app.css */
     .timeline {
         display: flex;
         align-items: center;
