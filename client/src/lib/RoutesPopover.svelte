@@ -76,85 +76,85 @@
         });
     };
 
-    // Helper to check if a route is currently selected
     const isCurrentRoute = (route: Bakker[]) => {
         return JSON.stringify(route) === JSON.stringify(routeRecord.route);
     };
 </script>
 
-<div class="popover-overlay" onclick={onClose} aria-hidden="true">
+<div class="overlay" onclick={onClose} aria-hidden="true">
     <div
-        class="popover-content card-glass"
+        class="modal card-glass"
         onclick={(e) => e.stopPropagation()}
         aria-hidden="true"
     >
-        <header class="popover-header">
-            <h3>Trip Details #{routeRecord.turID}</h3>
+        <header class="modal-header">
+            <h3>Trip #{routeRecord.turID}</h3>
             <button class="close-btn" onclick={onClose}>&times;</button>
         </header>
 
-        <div class="lift-details">
-            <div class="lift-node">
-                <span class="node-label">Start Lift</span>
-                <span class="node-value"
-                    >⛷️ {routeRecord.startHeisTur.heis}</span
-                >
+        <div class="timeline">
+            <div class="node">
+                <span class="node-label">Start</span>
+                <span class="node-lift">{routeRecord.startHeisTur.heis}</span>
                 <span class="node-time"
                     >{formatDate(routeRecord.startHeisTur.timeStart)}</span
                 >
             </div>
-            <div class="lift-connector"></div>
-            <div class="lift-node">
-                <span class="node-label">End Lift</span>
-                <span class="node-value">⛳ {routeRecord.endHeisTur.heis}</span>
+            <div class="connector">
+                <div class="line"></div>
+                <span class="icon">⛷️</span>
+            </div>
+            <div class="node">
+                <span class="node-label">End</span>
+                <span class="node-lift">{routeRecord.endHeisTur.heis}</span>
                 <span class="node-time"
                     >{formatDate(routeRecord.endHeisTur.timeStart)}</span
                 >
             </div>
         </div>
 
-        <div class="route-selection">
-            <h4>Select Route</h4>
-            <p class="subtitle">
-                Pick a valid sequence of slopes taken between these lifts
-            </p>
+        <section class="selection">
+            <div class="selection-header">
+                <h4>Correct Route</h4>
+                <p>Select the slopes you actually skied</p>
+            </div>
 
-            <div class="routes-options">
-                {#each possibleRoutes as route, i}
+            <div class="options-list">
+                {#each possibleRoutes as route}
                     <button
-                        class="route-option"
+                        class="option-card"
                         class:selected={isCurrentRoute(route)}
                         onclick={() => updateRoute(route)}
                         disabled={isUpdating || isCurrentRoute(route)}
                     >
-                        <div class="option-path">
-                            {#each route as slope, j}
-                                <span class="slope-tag">{slope}</span>
-                                {#if j < route.length - 1}<span class="arrow"
-                                        >→</span
-                                    >{/if}
+                        <div class="path-display">
+                            {#each route as slope, i}
+                                <span class="slope-name">{slope}</span>
+                                {#if i < route.length - 1}
+                                    <span class="path-arrow">→</span>
+                                {/if}
                             {/each}
                         </div>
                         {#if isCurrentRoute(route)}
-                            <span class="current-label">Current</span>
+                            <span class="current-badge">Current</span>
                         {/if}
                     </button>
                 {/each}
 
                 {#if possibleRoutes.length === 0}
-                    <p class="no-options">
-                        No alternative routes found in map.
-                    </p>
+                    <div class="empty-msg">
+                        No alternative routes available.
+                    </div>
                 {/if}
             </div>
-        </div>
+        </section>
 
         {#if error}
-            <p class="error-text">{error}</p>
+            <div class="error-msg">{error}</div>
         {/if}
 
         {#if isUpdating}
-            <div class="updating-overlay">
+            <div class="loading-overlay">
                 <div class="spinner"></div>
             </div>
         {/if}
@@ -162,184 +162,238 @@
 </div>
 
 <style>
-    .popover-overlay {
+    .overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(15, 23, 42, 0.8);
-        backdrop-filter: blur(4px);
+        inset: 0;
+        background: rgba(10, 15, 30, 0.85);
+        backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 1000;
-        padding: 1rem;
+        padding: var(--spacing-md);
     }
 
-    .popover-content {
+    .modal {
         position: relative;
-        max-width: 500px;
+        max-width: 480px;
+        width: 100%;
         margin: 0;
-        padding: 2rem;
-        cursor: default;
+        padding: var(--spacing-lg);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
     }
 
-    .popover-header {
+    .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 2rem;
+        margin-bottom: var(--spacing-lg);
+        flex-shrink: 0;
     }
 
-    .popover-header h3 {
-        margin: 0;
-        color: #f8fafc;
+    .modal-header h3 {
+        font-size: 1.5rem;
+        font-weight: 800;
     }
 
     .close-btn {
-        background: none;
-        border: none;
-        color: #94a3b8;
-        font-size: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        color: var(--text-muted);
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-full);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
         cursor: pointer;
-        padding: 0.5rem;
-        line-height: 1;
+        transition: all var(--transition-fast);
     }
 
     .close-btn:hover {
-        color: #f8fafc;
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-main);
     }
 
-    .lift-details {
+    /* Timeline Styling */
+    .timeline {
         display: flex;
         align-items: center;
-        justify-content: space-around;
+        padding: var(--spacing-md);
         background: rgba(0, 0, 0, 0.2);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 2rem;
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-lg);
+        flex-shrink: 0;
     }
 
-    .lift-node {
+    .node {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.25rem;
+        gap: 2px;
+        min-width: 60px;
     }
 
     .node-label {
-        font-size: 0.75rem;
-        color: #94a3b8;
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--text-dim);
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
 
-    .node-value {
-        font-weight: 700;
-        color: #60a5fa;
+    .node-lift {
         font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--accent-primary);
     }
 
     .node-time {
-        font-size: 0.85rem;
-        color: #f8fafc;
+        font-size: 0.8rem;
+        color: var(--text-main);
     }
 
-    .lift-connector {
+    .connector {
         flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--spacing-sm);
+    }
+
+    .line {
+        position: absolute;
+        inset: 0;
+        margin: auto;
         height: 2px;
-        background: linear-gradient(90deg, #60a5fa, #a78bfa);
-        margin: 0 1rem;
+        background: linear-gradient(
+            90deg,
+            var(--accent-primary),
+            var(--accent-secondary)
+        );
         opacity: 0.3;
     }
 
-    .route-selection h4 {
-        margin: 0 0 0.5rem 0;
-        color: #f8fafc;
+    .icon {
+        background: var(--bg-main);
+        padding: 4px;
+        border-radius: var(--radius-full);
+        font-size: 1rem;
+        position: relative;
+        z-index: 1;
     }
 
-    .subtitle {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        margin-bottom: 1.5rem;
-    }
-
-    .routes-options {
+    /* Selection Area */
+    .selection {
         display: flex;
         flex-direction: column;
-        gap: 0.75rem;
+        overflow: hidden;
     }
 
-    .route-option {
+    .selection-header {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .selection h4 {
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+    }
+
+    .selection p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .options-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        overflow-y: auto;
+        padding-right: 4px;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .option-card {
         background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 1rem;
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        padding: var(--spacing-md);
         display: flex;
         justify-content: space-between;
         align-items: center;
         cursor: pointer;
-        transition: all 0.2s;
-        width: 100%;
+        transition: all var(--transition-fast);
         text-align: left;
     }
 
-    .route-option:hover:not(:disabled) {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: #60a5fa;
+    @media (hover: hover) {
+        .option-card:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--accent-primary);
+        }
     }
 
-    .route-option.selected {
-        background: rgba(96, 165, 250, 0.1);
-        border-color: #60a5fa;
+    .option-card.selected {
+        background: var(--accent-soft);
+        border-color: var(--accent-primary);
         cursor: default;
     }
 
-    .option-path {
+    .path-display {
         display: flex;
         align-items: center;
-        gap: 0.35rem;
+        gap: 0.25rem;
         flex-wrap: wrap;
     }
 
-    .slope-tag {
+    .slope-name {
         font-size: 0.75rem;
-        background: rgba(148, 163, 184, 0.1);
-        color: #e2e8f0;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
+        font-weight: 700;
+        color: var(--text-main);
     }
 
-    .arrow {
-        color: #64748b;
+    .path-arrow {
+        color: var(--text-dim);
         font-size: 0.8rem;
     }
 
-    .current-label {
-        font-size: 0.7rem;
-        font-weight: 700;
+    .current-badge {
+        font-size: 0.65rem;
+        font-weight: 800;
         text-transform: uppercase;
-        color: #60a5fa;
+        color: var(--accent-primary);
+        background: var(--accent-soft);
+        padding: 2px 6px;
+        border-radius: 4px;
     }
 
-    .no-options {
+    .empty-msg {
         text-align: center;
-        padding: 2rem;
-        color: #64748b;
+        padding: var(--spacing-xl);
+        color: var(--text-dim);
         font-style: italic;
     }
 
-    .updating-overlay {
+    .error-msg {
+        color: var(--error);
+        font-size: 0.85rem;
+        margin-top: var(--spacing-md);
+        text-align: center;
+    }
+
+    .loading-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(15, 23, 42, 0.5);
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 16px;
+        z-index: 10;
     }
 </style>

@@ -32,100 +32,118 @@
 {#if currentPath === "/scanCard"}
   <ScanCard {API_BASE_URL} />
 {:else}
-  <main class="dashboard-container">
-    <h1>Welcome to the Ski Tracker</h1>
-    <p>Your Card Serial: {cardSerial}</p>
+  <main class="dashboard-wrapper">
+    <div class="container">
+      <header class="main-header">
+        <h1 class="gradient-text">Ski Tracker</h1>
+        {#if cardSerial}
+          <div class="user-chip">
+            <span class="chip-icon">🆔</span>
+            <span class="chip-text">{cardSerial}</span>
+          </div>
+        {/if}
+      </header>
 
-    {#if cardSerial}
-      <SkiSummary {cardSerial} {API_BASE_URL} />
-    {/if}
+      {#if cardSerial}
+        <div class="content-sections">
+          <section class="summary-section">
+            <SkiSummary {cardSerial} {API_BASE_URL} />
+          </section>
 
-    {#if cardSerial}
-      <RecentRides {cardSerial} {API_BASE_URL} />
-    {/if}
+          <section class="data-lists">
+            <RecentRides {cardSerial} {API_BASE_URL} />
+            <RecentRoutes {cardSerial} {API_BASE_URL} />
+          </section>
+        </div>
+      {/if}
 
-    {#if cardSerial}
-      <RecentRoutes {cardSerial} {API_BASE_URL} />
-    {/if}
-
-    <div class="actions">
-      <button
-        class="danger-btn"
-        onclick={() => {
-          localStorage.removeItem("cardSerial");
-          window.location.href = "/scanCard";
-        }}
-      >
-        Clear Card and Retry
-      </button>
+      <footer class="main-footer">
+        <button
+          class="clear-btn"
+          onclick={() => {
+            localStorage.removeItem("cardSerial");
+            window.location.href = "/scanCard";
+          }}
+        >
+          Disconnect Card
+        </button>
+      </footer>
     </div>
   </main>
 {/if}
 
 <style>
-  .dashboard-container {
-    padding: 4rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+  .dashboard-wrapper {
+    padding-top: var(--spacing-xl);
+    padding-bottom: var(--spacing-xl);
   }
 
-  .dashboard-header {
+  .main-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: var(--spacing-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
   }
 
   h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    background: linear-gradient(to right, #60a5fa, #a78bfa);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: clamp(2rem, 8vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.025em;
   }
 
-  p {
-    color: #94a3b8;
-    font-size: 1.25rem;
-    margin: 0;
+  .user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--glass-border);
+    font-size: 0.9rem;
+    color: var(--text-muted);
   }
 
-  .dashboard-grid {
+  .content-sections {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .data-lists {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 2rem;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
     align-items: start;
   }
 
-  @media (max-width: 640px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .dashboard-container {
-      padding: 2rem 1rem;
+  @media (min-width: 1024px) {
+    .data-lists {
+      grid-template-columns: 1fr 1fr;
     }
   }
 
-  .actions {
-    margin-top: 4rem;
-    text-align: center;
+  .main-footer {
+    margin-top: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
   }
 
-  .danger-btn {
-    background: rgba(220, 38, 38, 0.2);
-    color: #fca5a5;
-    border: 1px solid rgba(220, 38, 38, 0.4);
+  .clear-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    border: 1px solid rgba(239, 68, 68, 0.2);
     padding: 0.75rem 1.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-fast);
   }
 
-  .danger-btn:hover {
-    background: rgba(220, 38, 38, 0.4);
+  .clear-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
     transform: translateY(-2px);
   }
 </style>

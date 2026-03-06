@@ -72,9 +72,9 @@
     });
 </script>
 
-<div class="summary-container card-glass">
-    <div class="summary-header">
-        <h2 class="section-title">Ski Performance</h2>
+<div class="card-glass summary-card">
+    <header class="summary-header">
+        <h2 class="section-title">Performance</h2>
         <div class="timeframe-selector">
             {#each ["all", "today", "month", "year"] as option}
                 <button
@@ -86,178 +86,152 @@
                 </button>
             {/each}
         </div>
-    </div>
+    </header>
 
     {#if isLoading}
-        <div class="state-container mini">
+        <div class="state-container compact">
             <div class="spinner"></div>
         </div>
     {:else if error}
-        <div class="state-container mini">
+        <div class="state-container compact">
             <p class="error-text">{error}</p>
         </div>
     {:else}
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🚠</div>
-                <div class="stat-content">
-                    <span class="stat-label">Total Lift Rides</span>
-                    <span class="stat-value">{stats.totalTrips}</span>
-                </div>
+            <div class="stat-item">
+                <span class="stat-label">Lift Rides</span>
+                <span class="stat-value">{stats.totalTrips}</span>
+                <span class="stat-icon-bg">🚠</span>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏔️</div>
-                <div class="stat-content">
-                    <span class="stat-label">Elevation Gain</span>
-                    <div class="stat-value-group">
-                        <span class="stat-value">{stats.totalMeters}</span>
-                        <span class="stat-unit">meters</span>
-                    </div>
+            <div class="stat-item">
+                <span class="stat-label">Elevation</span>
+                <div class="stat-value-group">
+                    <span class="stat-value">{stats.totalMeters}</span>
+                    <span class="stat-unit">m</span>
                 </div>
+                <span class="stat-icon-bg">🏔️</span>
             </div>
         </div>
     {/if}
 </div>
 
 <style>
-    .summary-container {
-        max-width: 1200px;
-        margin-bottom: 2rem;
-        padding: 2rem;
-        margin-left: auto;
-        margin-right: auto;
+    .summary-card {
+        padding-top: var(--spacing-md);
     }
 
     .summary-header {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
     }
 
-    .summary-header h2 {
-        margin: 0;
+    @media (min-width: 640px) {
+        .summary-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+    }
+
+    .section-title {
+        margin-bottom: 0;
         border: none;
-        padding: 0;
+        padding-bottom: 0;
     }
 
     .timeframe-selector {
         display: flex;
-        background: rgba(15, 23, 42, 0.4);
-        padding: 0.25rem;
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(0, 0, 0, 0.2);
+        padding: 3px;
+        border-radius: var(--radius-md);
+        width: 100%;
+        max-width: 400px;
     }
 
     .time-btn {
+        flex: 1;
         background: transparent;
         border: none;
-        color: #94a3b8;
-        padding: 0.5rem 1.25rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        border-radius: 8px;
+        color: var(--text-muted);
+        padding: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .time-btn:hover {
-        color: #f8fafc;
+        transition: all var(--transition-fast);
     }
 
     .time-btn.active {
-        background: #3b82f6;
+        background: var(--accent-primary);
         color: white;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
     }
 
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--spacing-md);
     }
 
-    .stat-card {
+    .stat-item {
+        position: relative;
         background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 16px;
-        padding: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 1.25rem;
-        transition:
-            transform 0.2s,
-            border-color 0.2s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(96, 165, 250, 0.3);
-    }
-
-    .stat-icon {
-        font-size: 2rem;
-        background: rgba(96, 165, 250, 0.1);
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 14px;
-    }
-
-    .stat-content {
+        padding: var(--spacing-lg) var(--spacing-md);
+        border-radius: var(--radius-md);
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        gap: 0.25rem;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .stat-label {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        font-weight: 500;
-        letter-spacing: 0.02em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+        position: relative;
+        z-index: 1;
     }
 
     .stat-value {
         font-size: 1.75rem;
         font-weight: 800;
-        color: #f8fafc;
-        line-height: 1;
+        color: var(--text-main);
+        position: relative;
+        z-index: 1;
+        line-height: 1.1;
     }
 
     .stat-value-group {
         display: flex;
         align-items: baseline;
-        gap: 0.4rem;
+        gap: 0.25rem;
     }
 
     .stat-unit {
         font-size: 0.9rem;
-        color: #60a5fa;
-        font-weight: 600;
+        font-weight: 700;
+        color: var(--accent-primary);
+        position: relative;
+        z-index: 1;
     }
 
-    .mini {
-        padding: 1.5rem !important;
+    .stat-icon-bg {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 4rem;
+        opacity: 0.05;
+        pointer-events: none;
+        transform: rotate(-15deg);
     }
 
-    @media (max-width: 640px) {
-        .summary-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .timeframe-selector {
-            width: 100%;
-            justify-content: space-between;
-        }
-
-        .time-btn {
-            flex: 1;
-            padding: 0.5rem 0.5rem;
-        }
+    .compact {
+        padding: var(--spacing-md) !important;
     }
 </style>

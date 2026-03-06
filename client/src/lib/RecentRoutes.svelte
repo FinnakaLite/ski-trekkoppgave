@@ -31,19 +31,15 @@
 
     const fetchRoutes = async () => {
         if (!cardSerial) return;
-
         isLoading = true;
         error = null;
         try {
             const response = await fetch(
                 `${API_BASE_URL}/routes?cardSerial=${cardSerial}`,
             );
-            if (!response.ok) {
-                throw new Error("Failed to fetch routes");
-            }
+            if (!response.ok) throw new Error("Failed to fetch routes");
             const data: RouteRecord[] = await response.json();
 
-            // Sort by timeFirstLift descending and take 20
             routes = data
                 .sort(
                     (a, b) =>
@@ -52,8 +48,7 @@
                 )
                 .slice(0, 20);
         } catch (err) {
-            error = err instanceof Error ? err.message : "An error occurred";
-            console.error(err);
+            error = err instanceof Error ? err.message : "Error loading routes";
         } finally {
             isLoading = false;
         }
@@ -63,16 +58,12 @@
         fetchRoutes();
     });
 
-    // Re-fetch if cardSerial changes
     $effect(() => {
-        if (cardSerial) {
-            fetchRoutes();
-        }
+        if (cardSerial) fetchRoutes();
     });
 
     const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return date.toLocaleString("no-NO", {
+        return new Date(dateStr).toLocaleString("no-NO", {
             month: "short",
             day: "numeric",
             hour: "2-digit",
@@ -85,44 +76,38 @@
         const mins = Math.round(diff / 60000);
         return `${mins} min`;
     };
-
-    const openDetails = (route: RouteRecord) => {
-        selectedRoute = route;
-    };
-
-    const closePopover = () => {
-        selectedRoute = null;
-    };
 </script>
 
 <div class="card-glass">
-    <h2 class="section-title">Recent Routes</h2>
+    <h2 class="section-title">
+        <span class="title-icon">🏔️</span> Recent Trips
+    </h2>
 
     {#if isLoading}
         <div class="state-container">
             <div class="spinner"></div>
-            <p>Fetching your routes...</p>
+            <p>Loading trips...</p>
         </div>
     {:else if error}
         <div class="state-container">
             <p class="error-text">{error}</p>
-            <button class="retry-btn" onclick={fetchRoutes}>Try Again</button>
+            <button class="retry-btn" onclick={fetchRoutes}>Retry</button>
         </div>
     {:else if routes.length === 0}
         <div class="state-container">
-            <p>No routes found yet.</p>
+            <p>No trips recorded yet.</p>
         </div>
     {:else}
         <ul class="item-list">
             {#each routes as routeRecord (routeRecord.turID)}
                 <li
-                    class="list-item clickable"
-                    onclick={() => openDetails(routeRecord)}
+                    class="list-item interactive"
+                    onclick={() => (selectedRoute = routeRecord)}
                     aria-hidden="true"
                 >
                     <div class="item-info">
                         <span class="info-primary"
-                            >🏔️ Trip #{routeRecord.turID}</span
+                            >Trip #{routeRecord.turID}</span
                         >
                         <span class="info-secondary">
                             {formatDate(routeRecord.timeFirstLift)} • {getDuration(
@@ -131,21 +116,21 @@
                             )}
                         </span>
                         {#if routeRecord.route && routeRecord.route.length > 0}
-                            <div class="route-slopes">
-                                {#each routeRecord.route.slice(0, 5) as slope}
-                                    <span class="slope-tag">{slope}</span>
+                            <div class="slope-line">
+                                {#each routeRecord.route.slice(0, 4) as slope}
+                                    <span class="slope-pill">{slope}</span>
                                 {/each}
-                                {#if routeRecord.route.length > 5}
+                                {#if routeRecord.route.length > 4}
                                     <span class="slope-more"
-                                        >+{routeRecord.route.length - 5} more</span
+                                        >+{routeRecord.route.length - 4}</span
                                     >
                                 {/if}
                             </div>
                         {/if}
                     </div>
                     <div class="item-meta">
-                        <span class="badge"
-                            >{routeRecord.route.length} Slopes</span
+                        <span class="badge count-badge"
+                            >{routeRecord.route.length} slopes</span
                         >
                     </div>
                 </li>
@@ -158,39 +143,46 @@
     <RoutesPopover
         routeRecord={selectedRoute}
         {API_BASE_URL}
-        onClose={closePopover}
+        onClose={() => (selectedRoute = null)}
         onUpdate={fetchRoutes}
     />
 {/if}
 
 <style>
-    .clickable {
+    .title-icon {
+        font-size: 1.1em;
+    }
+
+    .interactive {
         cursor: pointer;
     }
 
-    .clickable:hover {
-        background: rgba(255, 255, 255, 0.08);
-    }
-
-    .route-slopes {
+    .slope-line {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.25rem;
-        margin-top: 0.5rem;
+        gap: 4px;
+        margin-top: 6px;
     }
 
-    .slope-tag {
-        font-size: 0.7rem;
-        background: rgba(96, 165, 250, 0.1);
-        color: #60a5fa;
-        padding: 0.1rem 0.4rem;
+    .slope-pill {
+        font-size: 0.65rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-muted);
+        padding: 2px 6px;
         border-radius: 4px;
-        border: 1px solid rgba(96, 165, 250, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .slope-more {
-        font-size: 0.7rem;
-        color: #94a3b8;
+        font-size: 0.65rem;
+        color: var(--text-dim);
         align-self: center;
+        padding-left: 2px;
+    }
+
+    .count-badge {
+        color: var(--accent-secondary);
+        background: rgba(139, 92, 246, 0.1);
     }
 </style>
