@@ -3,6 +3,7 @@
   import ScanCard from "./pages/ScanCard.svelte";
   import RecentRides from "./lib/RecentRides.svelte";
   import RecentRoutes from "./lib/RecentRoutes.svelte";
+  import SkiSummary from "./lib/SkiSummary.svelte";
 
   const API_BASE_URL = "http://localhost:3000/api";
 
@@ -34,6 +35,10 @@
   <main class="dashboard-container">
     <h1>Welcome to the Ski Tracker</h1>
     <p>Your Card Serial: {cardSerial}</p>
+
+    {#if cardSerial}
+      <SkiSummary {cardSerial} {API_BASE_URL} />
+    {/if}
 
     {#if cardSerial}
       <RecentRides {cardSerial} {API_BASE_URL} />
