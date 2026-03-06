@@ -4,11 +4,13 @@
   import RecentRides from "./lib/RecentRides.svelte";
   import RecentRoutes from "./lib/RecentRoutes.svelte";
   import SkiSummary from "./lib/SkiSummary.svelte";
+  import SkiMapPopover from "./lib/SkiMapPopover.svelte";
 
   const API_BASE_URL = "http://localhost:3000/api";
 
   let currentPath = $state(window.location.pathname);
   let cardSerial = $state<string | null>(null);
+  let showSkiMap = $state(false);
 
   onMount(() => {
     // Check local storage for the card serial
@@ -36,13 +38,27 @@
     <div class="container">
       <header class="main-header">
         <h1 class="gradient-text">Ski Tracker</h1>
-        {#if cardSerial}
-          <div class="user-chip">
-            <span class="chip-icon">🆔</span>
-            <span class="chip-text">{cardSerial}</span>
-          </div>
-        {/if}
+        <div class="header-actions">
+          {#if cardSerial}
+            <div class="user-chip">
+              <span class="chip-icon">🆔</span>
+              <span class="chip-text">{cardSerial}</span>
+            </div>
+          {/if}
+          <button class="map-btn" onclick={() => (showSkiMap = true)}>
+            <span class="btn-icon">🗺️</span>
+            <span class="btn-text">Map</span>
+          </button>
+        </div>
       </header>
+
+      {#if showSkiMap}
+        <SkiMapPopover
+          onClose={() => {
+            showSkiMap = false;
+          }}
+        />
+      {/if}
 
       {#if cardSerial}
         <div class="content-sections">
@@ -87,13 +103,22 @@
     gap: var(--spacing-md);
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
   h1 {
     font-size: clamp(2rem, 8vw, 3rem);
     font-weight: 800;
     letter-spacing: -0.025em;
   }
 
-  .user-chip {
+  .user-chip,
+  .map-btn {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
@@ -102,7 +127,29 @@
     border-radius: var(--radius-full);
     border: 1px solid var(--glass-border);
     font-size: 0.9rem;
+    cursor: default;
+  }
+
+  .user-chip {
     color: var(--text-muted);
+  }
+
+  .map-btn {
+    background: var(--accent-soft);
+    color: var(--accent-primary);
+    border-color: rgba(59, 130, 246, 0.3);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .map-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .map-btn:active {
+    transform: scale(0.95);
   }
 
   .content-sections {
