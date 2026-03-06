@@ -62,6 +62,10 @@ export const getRoutes = async (req: Request, res: Response) => {
 
         const routes = await prisma.turer.findMany({
             where,
+            include: {
+                startHeisTur: true,
+                endHeisTur: true,
+            },
             orderBy: {
                 timeFirstLift: 'asc',
             },

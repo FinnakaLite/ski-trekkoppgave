@@ -1,40 +1,53 @@
 <script lang="ts">
-  let serialInput = $state('');
+  let { API_BASE_URL }: { API_BASE_URL: string } = $props();
+  let serialInput = $state("");
 
-  function saveAndContinue() {
-    if (serialInput.trim()) {
-      localStorage.setItem('cardSerial', serialInput.trim());
+  async function verifyAndSave() {
+    const verified = await fetch(
+      `${API_BASE_URL}/verifyCardSerial?cardSerial=${serialInput.trim()}`,
+    ).then((res) => res.ok);
+
+    if (verified) {
+      localStorage.setItem("cardSerial", serialInput.trim());
       // Simple reload approach to redirect the user back to the home view
-      window.location.href = '/';
+      window.location.href = "/";
+    } else {
+      alert(
+        "Invalid Card Serial Number. Please make sure your card number is correct. Make sure you have activated your card by going on your first lift ride.",
+      );
     }
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
-      saveAndContinue();
+    if (event.key === "Enter") {
+      verifyAndSave();
     }
   }
 </script>
 
 <div class="scan-page-wrapper">
   <div class="card">
-    <div class="icon-container">
-      ⛷️
-    </div>
+    <div class="icon-container">⛷️</div>
     <h2>Scan Your Ski Pass</h2>
-    <p class="subtitle">Please enter your card's serial number to access your data.</p>
-    
+    <p class="subtitle">
+      Please enter your card's serial number to access your data.
+    </p>
+
     <div class="input-group">
-      <input 
-        type="text" 
-        bind:value={serialInput} 
-        placeholder="e.g. CARD-XYZ123" 
+      <input
+        type="text"
+        bind:value={serialInput}
+        placeholder="e.g. CARD-XYZ123"
         onkeydown={handleKeydown}
         autofocus
       />
     </div>
 
-    <button onclick={saveAndContinue} class="primary-btn" disabled={!serialInput.trim()}>
+    <button
+      onclick={verifyAndSave}
+      class="primary-btn"
+      disabled={!serialInput.trim()}
+    >
       <span class="btn-text">Connect Pass</span>
       <div class="btn-glow"></div>
     </button>
@@ -56,7 +69,9 @@
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      inset 0 1px 1px rgba(255, 255, 255, 0.05);
     border-radius: 24px;
     padding: 3.5rem 2.5rem;
     text-align: center;
@@ -67,7 +82,9 @@
 
   .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 30px 60px -12px rgba(0, 0, 0, 0.6),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
   }
 
   .icon-container {
@@ -183,7 +200,8 @@
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0) rotate(0);
     }
     50% {
@@ -192,7 +210,11 @@
   }
 
   @keyframes sweep {
-    0% { left: -100%; }
-    100% { left: 100%; }
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
   }
 </style>
