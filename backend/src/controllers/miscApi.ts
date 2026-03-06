@@ -3,7 +3,6 @@ import type { Request, Response } from 'express';
 import prisma from '../lib/prisma.ts';
 
 export const verifyCardSerial = async (req: Request, res: Response) => {
-    console.log(req.query)
    try {
       const { cardSerial } = req.query;
 
