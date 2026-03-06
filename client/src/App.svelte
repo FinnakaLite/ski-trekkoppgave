@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import ScanCard from "./pages/ScanCard.svelte";
+  import RecentRides from "./lib/RecentRides.svelte";
+  import RecentRoutes from "./lib/RecentRoutes.svelte";
 
   const API_BASE_URL = "http://localhost:3000/api";
 
@@ -33,37 +35,38 @@
     <h1>Welcome to the Ski Tracker</h1>
     <p>Your Card Serial: {cardSerial}</p>
 
-    <button
-      class="danger-btn"
-      onclick={() => {
-        localStorage.removeItem("cardSerial");
-        window.location.href = "/scanCard";
-      }}
-    >
-      Clear Card and Retry
-    </button>
+    {#if cardSerial}
+      <RecentRides {cardSerial} {API_BASE_URL} />
+    {/if}
+
+    {#if cardSerial}
+      <RecentRoutes {cardSerial} {API_BASE_URL} />
+    {/if}
+
+    <div class="actions">
+      <button
+        class="danger-btn"
+        onclick={() => {
+          localStorage.removeItem("cardSerial");
+          window.location.href = "/scanCard";
+        }}
+      >
+        Clear Card and Retry
+      </button>
+    </div>
   </main>
 {/if}
 
 <style>
-  :global(body) {
-    margin: 0;
-    padding: 0;
-    font-family:
-      "Inter",
-      system-ui,
-      -apple-system,
-      sans-serif;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: #f8fafc;
-    min-height: 100vh;
-  }
-
   .dashboard-container {
     padding: 4rem 2rem;
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
+  }
+
+  .dashboard-header {
     text-align: center;
+    margin-bottom: 3rem;
   }
 
   h1 {
@@ -72,13 +75,36 @@
     margin-bottom: 1rem;
     background: linear-gradient(to right, #60a5fa, #a78bfa);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   p {
     color: #94a3b8;
     font-size: 1.25rem;
-    margin-bottom: 3rem;
+    margin: 0;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 640px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-container {
+      padding: 2rem 1rem;
+    }
+  }
+
+  .actions {
+    margin-top: 4rem;
+    text-align: center;
   }
 
   .danger-btn {

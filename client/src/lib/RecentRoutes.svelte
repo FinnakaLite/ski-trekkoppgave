@@ -1,12 +1,22 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import RoutesPopover from "./RoutesPopover.svelte";
+    import type { Bakker, Heiser } from "./routesMap";
+
+    interface LiftRide {
+        heisTurid: number;
+        heis: Heiser;
+        timeStart: string;
+    }
 
     interface RouteRecord {
         turID: number;
         cardSerial: string;
         timeFirstLift: string;
         timeEndLift: string;
-        route: string[];
+        route: Bakker[];
+        startHeisTur: LiftRide;
+        endHeisTur: LiftRide;
     }
 
     let {
@@ -17,6 +27,7 @@
     let routes = $state<RouteRecord[]>([]);
     let isLoading = $state(true);
     let error = $state<string | null>(null);
+    let selectedRoute = $state<RouteRecord | null>(null);
 
     const fetchRoutes = async () => {
         if (!cardSerial) return;
@@ -74,6 +85,14 @@
         const mins = Math.round(diff / 60000);
         return `${mins} min`;
     };
+
+    const openDetails = (route: RouteRecord) => {
+        selectedRoute = route;
+    };
+
+    const closePopover = () => {
+        selectedRoute = null;
+    };
 </script>
 
 <div class="card-glass">
@@ -96,7 +115,11 @@
     {:else}
         <ul class="item-list">
             {#each routes as routeRecord (routeRecord.turID)}
-                <li class="list-item">
+                <li
+                    class="list-item clickable"
+                    onclick={() => openDetails(routeRecord)}
+                    aria-hidden="true"
+                >
                     <div class="item-info">
                         <span class="info-primary"
                             >🏔️ Trip #{routeRecord.turID}</span
@@ -131,7 +154,24 @@
     {/if}
 </div>
 
+{#if selectedRoute}
+    <RoutesPopover
+        routeRecord={selectedRoute}
+        {API_BASE_URL}
+        onClose={closePopover}
+        onUpdate={fetchRoutes}
+    />
+{/if}
+
 <style>
+    .clickable {
+        cursor: pointer;
+    }
+
+    .clickable:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
     .route-slopes {
         display: flex;
         flex-wrap: wrap;
